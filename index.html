@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>煙花動畫</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .text-container {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            text-align: center;
+            transform: translateY(-50%);
+        }
+        .greeting {
+            font-size: 5vw;
+            font-weight: bold;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+    
+    <!-- 文字祝福容器 -->
+    <div class="text-container">
+        <p id="greeting-text" class="greeting">家人們，新年快樂！</p>
+    </div>
+
+    <!-- 煙花爆炸音效 -->
+    <audio id="firework-sound">
+        <source src="fireworks_2-278166.mp3" type="audio/mp3">
+        您的瀏覽器不支援音頻元素。
+    </audio>
+
+    <script>
+        // 獲取Canvas和Context
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        resizeCanvas();
+
+        // 煙花爆炸音效
+        const fireworkSound = document.getElementById("firework-sound");
+
+        // 煙花祝福語
+        const greetings = [
+            '新年快樂！',
+            'Ivy祝大家，在新的一年裡！',
+            '身體健康！',
+            '萬事如意！',
+            '開心快樂每一天！'
+        ];
+        let currentGreeting = 0;
+        const greetingText = document.getElementById('greeting-text');
+
+        // 煙花類
+        class Firework {
+            constructor(x, y, targetY, color, size) {
+                this.x = x;
+                this.y = y;
+                this.targetY = targetY;
+                this.color = color;
+                this.size = size;
+                this.particles = [];
+                this.exploded = false;
+                this.velocity = {
+                    x: 0,
+                    y: -Math.random() * 3 - 9
+                };
+            }
+
+            explode() {
+                this.playExplosionSound();
+                for (let i = 0; i < 500; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 6 + 1;
+                    this.particles.push(new Particle(
+                        this.x, this.y, this.color, {
+                            x: Math.cos(angle) * speed,
+                            y: Math.sin(angle) * speed
+                        }, this.size / 2
+                    ));
+                }
+            }
+
+            playExplosionSound() {
+                fireworkSound.currentTime = 0;  // 確保音效從頭播放
+                fireworkSound.play();
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+                this.particles.forEach(p => p.draw());
+            }
+
+            update() {
+                if (!this.exploded) {
+                    this.y += this.velocity.y;
+                    this.velocity.y += 0.1;
+                    if (this.y < this.targetY) {
+                        this.exploded = true;
+                        this.explode();
+                    }
+                }
+                this.particles.forEach(p => p.update());
+            }
+        }
+
+        // 粒子類
+        class Particle {
+            constructor(x, y, color, velocity, size) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = velocity;
+                this.size = size;
+                this.alpha = 1;
+                this.gravity = 0.03;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.velocity.y += this.gravity;
+                this.alpha -= 0.02;
+            }
+        }
+
+        let fireworks = [];
+        let timer = 0;
+
+        // 動畫循環
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (timer % 15 === 0) {
+                const x = Math.random() * canvas.width;
+                const targetY = Math.random() * (canvas.height * 0.3) + 50;
+                fireworks.push(new Firework(x, canvas.height, targetY, randomColor(), Math.random() * 4 + 1));
+            }
+            timer++;
+
+            fireworks.forEach((fw, index) => {
+                fw.update();
+                fw.draw();
+                if (fw.exploded && fw.particles.length === 0) {
+                    fireworks.splice(index, 1);
+                }
+            });
+        }
+
+        // 隨機顏色
+        function randomColor() {
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 100%, 60%)`;
+        }
+
+        // 視窗大小調整
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        animate();
+    </script>
+</body>
+</html>
+
