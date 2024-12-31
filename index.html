@@ -27,6 +27,7 @@
             font-size: 5vw;
             font-weight: bold;
             margin: 0;
+            color: red;  /* 設定紅色文字 */
         }
     </style>
 </head>
@@ -35,7 +36,7 @@
     
     <!-- 文字祝福容器 -->
     <div class="text-container">
-        <p id="greeting-text" class="greeting"> 新年快樂！</p>
+        <p id="greeting-text" class="greeting">Ivy祝大家新年快樂！</p>
     </div>
 
     <!-- 煙花爆炸音效 -->
@@ -50,12 +51,9 @@
         const ctx = canvas.getContext('2d');
         resizeCanvas();
 
-        // 煙花爆炸音效
-        const fireworkSound = document.getElementById("firework-sound");
-
         // 煙花祝福語
         const greetings = [
-            '新年快樂！',
+            '家人們，新年快樂！',
             'Ivy祝大家，在新的一年裡！',
             '身體健康！',
             '萬事如意！',
@@ -63,6 +61,19 @@
         ];
         let currentGreeting = 0;
         const greetingText = document.getElementById('greeting-text');
+
+        // 每3秒更換一次文字
+        setInterval(() => {
+            currentGreeting = (currentGreeting + 1) % greetings.length;
+            greetingText.innerText = greetings[currentGreeting];
+        }, 3000);  // 每3秒切換文字
+
+        // 調整Canvas大小
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
 
         // 煙花類
         class Firework {
@@ -95,6 +106,7 @@
             }
 
             playExplosionSound() {
+                const fireworkSound = document.getElementById("firework-sound");
                 fireworkSound.currentTime = 0;  // 確保音效從頭播放
                 fireworkSound.play();
             }
@@ -176,19 +188,11 @@
             });
         }
 
-        // 隨機顏色
         function randomColor() {
             const hue = Math.floor(Math.random() * 360);
             return hsl(${hue}, 100%, 60%);
         }
 
-        // 視窗大小調整
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        window.addEventListener('resize', resizeCanvas);
         animate();
     </script>
 </body>
